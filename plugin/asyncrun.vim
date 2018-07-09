@@ -182,6 +182,7 @@ if !exists('g:asyncrun_save')
 endif
 
 
+
 "----------------------------------------------------------------------
 "- Internal Functions
 "----------------------------------------------------------------------
@@ -220,6 +221,7 @@ function! s:chdir(path)
 	silent execute cmd . ' '. fnameescape(a:path)
 endfunc
 
+let s:asyncrun_last_args = []
 
 let s:asyncrun_windows = 0
 let g:asyncrun_windows = 0
@@ -1170,6 +1172,11 @@ endfunc
 " asyncrun - run
 "----------------------------------------------------------------------
 function! asyncrun#run(bang, opts, args, ...)
+	let s:asyncrun_last_args = []
+	let s:asyncrun_last_args += [deepcopy(a:bang)]
+	let s:asyncrun_last_args += [deepcopy(a:opts)]
+	let s:asyncrun_last_args += [deepcopy(a:args)]
+	let s:asyncrun_last_args += deepcopy(a:000)
 	let l:macros = {}
 	let l:macros['VIM_FILEPATH'] = expand("%:p")
 	let l:macros['VIM_FILENAME'] = expand("%:t")
@@ -1281,6 +1288,11 @@ function! asyncrun#run(bang, opts, args, ...)
 endfunc
 
 
+function! asyncrun#runlastcommand()
+	call call("asyncrun#run", s:asyncrun_last_args)
+endfunc
+
+
 "----------------------------------------------------------------------
 " asyncrun - stop
 "----------------------------------------------------------------------
@@ -1319,6 +1331,8 @@ command! -bang -nargs=+ -range=0 -complete=file AsyncRun
 
 command! -bang -nargs=0 AsyncStop call asyncrun#stop('<bang>')
 
+command! -nargs=0 -range=0  AsyncRunLastCommand
+	\ call asyncrun#runlastcommand()
 
 
 "----------------------------------------------------------------------
